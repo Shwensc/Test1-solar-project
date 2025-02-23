@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Rooftop Calculation Results</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="css/area_select.css" rel="stylesheet" />
+  </head>
+  <body id="page-top">
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand" href="#page-top">Go to Top</a>
+        <button
+          class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarResponsive"
+          aria-controls="navbarResponsive"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          Menu
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Results Header-->
+    <header class="masthead bg-primary text-white text-center">
+      <div class="container d-flex align-items-center flex-column">
+        <!-- Heading-->
+        <h1 class="masthead-heading text-uppercase mb-0">Rooftop Calculation Results</h1>
+        <!-- Icon Divider-->
+        <div class="divider-custom divider-light">
+          <div class="divider-custom-line"></div>
+          <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+          <div class="divider-custom-line"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Results Section-->
+    <section class="page-section" id="results-section">
+      <div class="container">
+        <h2 class="text-center text-uppercase text-secondary mb-0">Calculation Results</h2>
+        <hr class="star-dark mb-5" />
+        <div class="row" id="results-container"></div>
+      </div>
+    </section>
+
+    <!-- Script to display results and perform calculations -->
+    <script>
+      // Example: Predefined rooftop boundary area (in square meters)
+      const urlParams = new URLSearchParams(window.location.search);
+      const boundaryArea = parseFloat(urlParams.get('boundaryArea'));
+
+      // Check if boundary area is valid
+      if (!boundaryArea || boundaryArea <= 0) {
+        document.getElementById("results-container").innerHTML =
+          "<p class='text-danger'>Invalid boundary area provided.</p>";
+      } else {
+        // Solar panels dataset (from CSV or predefined data)
+        const solarPanels = [
+          {
+            model: "SunPower X-Series 360W",
+            type: "Monocrystalline",
+            length: 1.7,
+            width: 1.05,
+            wattage: 360,
+            image: "img/sunpower.jpg", // Placeholder image URL
+          },
+          {
+            model: "LG NeON R 350W",
+            type: "Monocrystalline",
+            length: 1.7,
+            width: 1.02,
+            wattage: 350,
+            image: "img/lgneonr.webp", // Placeholder image URL
+          },
+          {
+            model: "Panasonic HIT 330W",
+            type: "Heterojunction",
+            length: 1.59,
+            width: 1.05,
+            wattage: 330,
+            image: "img/panasonic.jpg", // Placeholder image URL
+          },
+          {
+            model: "Canadian Solar 335W",
+            type: "Polycrystalline",
+            length: 1.99,
+            width: 1.0,
+            wattage: 335,
+            image: "img/canadian.webp", // Placeholder image URL
+          },
+          {
+            model: "REC Alpha 380W",
+            type: "Monocrystalline",
+            length: 1.75,
+            width: 1.04,
+            wattage: 380,
+            image: "img/rec.webp", // Placeholder image URL
+          },
+        ];
+
+        // Assumptions for energy and cost calculations
+        const sunlightHoursPerDay = 5; // Average sunlight hours per day
+        const costPerKWh = 5; // Cost of electricity in rupees per kWh
+        const installationCostPerPanel = 11450; // Acost of 144 cell panels
+
+        // Function to calculate the energy generated per day (in kWh)
+        function calculateDailyEnergy(numPanels, wattagePerPanel, sunlightHours) {
+          const totalWattage = numPanels * wattagePerPanel;
+          return (totalWattage * sunlightHours) / 1000; // Convert to kWh
+        }
+
+        // Function to calculate daily cost
+        function calculateDailyCost(dailyEnergy, costPerKWh) {
+          return dailyEnergy * costPerKWh;
+        }
+
+        // Function to calculate monthly cost
+        function calculateMonthlyCost(dailyCost) {
+          return dailyCost * 30; // Assuming 30 days in a month
+        }
+
+        // Loop through each solar panel model and perform calculations
+        const resultsContainer = document.getElementById("results-container");
+        solarPanels.forEach((panel) => {
+          const panelArea = panel.length * panel.width;
+          const numPanels = Math.floor(boundaryArea / panelArea); // Number of panels that fit
+
+          if (numPanels > 0) {
+            // Calculate energy and costs
+            const dailyEnergyGenerated = calculateDailyEnergy(
+              numPanels,
+              panel.wattage,
+              sunlightHoursPerDay
+            );
+            const dailyCost = calculateDailyCost(
+              dailyEnergyGenerated,
+              costPerKWh
+            );
+            const monthlyCost = calculateMonthlyCost(dailyCost);
+
+            // Calculate installation cost and payback period
+            const installationCost = numPanels * installationCostPerPanel;
+            const paybackPeriod = installationCost / monthlyCost; // Payback period in months
+
+            // Create and display the card for this panel
+            resultsContainer.innerHTML += `
+              <div class="col-md-4">
+                <div class="card text-center">
+                  <img src="${panel.image}" class="card-img-top" alt="${panel.model}" />
+                  <div class="card-body">
+                    <h5 class="card-title">${panel.model}</h5>
+                    <p class="card-text">Type: ${panel.type}</p>
+                    <p class="card-text">Single Panel Area: ${panelArea.toFixed(2)} m²</p>
+                    <p class="card-text">Number of panels: ${numPanels}</p>
+                    <p class="card-text">Daily Energy: ${dailyEnergyGenerated.toFixed(2)} kWh</p>
+                    <p class="card-text">Daily Cost: ₹${dailyCost.toFixed(2)}</p>
+                    <p class="card-text">Monthly Cost: ₹${monthlyCost.toFixed(2)}</p>
+                    <p class="card-text">Installation Cost: ₹${installationCost.toFixed(2)}</p>
+                    <p class="card-text">Payback Period: ${paybackPeriod.toFixed(1)} months</p>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            // Handle case where no panels can fit
+            resultsContainer.innerHTML += `
+              <div class="col-md-4">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h5 class="card-title">${panel.model}</h5>
+                    <p class="card-text text-danger">No panels can fit in the available area.</p>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        });
+      }
+    </script>
+
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="js/scripts.js"></script>
+  </body>
+</html>
